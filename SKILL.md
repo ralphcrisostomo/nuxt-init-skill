@@ -18,8 +18,10 @@ Scaffolds a new Nuxt 4 project with the standard config files, dev dependencies,
 1. Create the config files listed below (skip any that already exist unless the user asks to overwrite).
 2. Install the dev dependencies (including `terraform-scaffold`).
 3. Add the scripts and `lint-staged` block to `package.json`.
-4. Run `bun install` and `bun run prepare` to initialise husky and nuxt types.
-5. Run `bunx terraform-scaffold init` to scaffold the Terraform directory structure.
+4. Set up Nuxt UI: install runtime deps, create `app/assets/css/main.css`, add `css` config to `nuxt.config.ts`, wrap app in `<UApp>`, create `app.config.ts`.
+5. Create or update `CLAUDE.md` with the standard structure: Skills table, Key Conventions, Architecture, and project-specific sections.
+6. Run `bun install` and `bun run prepare` to initialise husky and nuxt types.
+7. Run `bunx terraform-scaffold init` to scaffold the Terraform directory structure.
 
 ---
 
@@ -286,6 +288,85 @@ bun add -d eslint @nuxt/eslint eslint-config-prettier prettier @prettier/plugin-
 
 ---
 
+## Nuxt UI Setup
+
+Nuxt UI v4 is the standard component library. Set it up after installing dependencies.
+
+### Install runtime dependencies
+
+```bash
+bun add @nuxt/ui @nuxt/image @iconify-json/lucide
+```
+
+### `app/assets/css/main.css`
+
+```css
+@import "tailwindcss";
+@import "@nuxt/ui";
+```
+
+### `nuxt.config.ts` additions
+
+Add `@nuxt/ui` and `@nuxt/image` to modules and reference the CSS file:
+
+```ts
+export default defineNuxtConfig({
+    modules: [
+        '@nuxt/eslint',
+        '@nuxt/content',
+        '@nuxt/ui',
+        '@nuxt/image',
+        '@compodium/nuxt',
+        '@formkit/auto-animate',
+    ],
+
+    css: ['~/assets/css/main.css'],
+})
+```
+
+### `app/app.vue`
+
+Wrap the entire app in `<UApp>` — required for toasts, tooltips, and overlays to work:
+
+```pug
+<script setup lang="ts"></script>
+
+<template lang="pug">
+UApp
+    NuxtRouteAnnouncer
+    NuxtLayout
+        NuxtPage
+</template>
+```
+
+### `app/app.config.ts`
+
+Set semantic color aliases:
+
+```ts
+export default defineAppConfig({
+    ui: {
+        colors: {
+            primary: 'blue',
+            neutral: 'zinc',
+        },
+    },
+})
+```
+
+### Icons
+
+Uses [Iconify](https://iconify.design/) with Lucide as the default collection. Format: `i-{collection}-{name}`.
+
+```pug
+UIcon(name="i-lucide-sun", class="size-5")
+UButton(icon="i-lucide-plus", label="Add")
+```
+
+Browse icons at [icones.js.org](https://icones.js.org).
+
+---
+
 ## Terraform Scaffold
 
 [terraform-scaffold](https://github.com/ralphcrisostomo/terraform-scaffold) is a CLI tool that automates AWS infrastructure setup with Terraform, AppSync, and Lambda.
@@ -317,6 +398,58 @@ bunx terraform-scaffold init
 | `bunx terraform-scaffold tf <env> <action>` | Execute Terraform operations (plan, apply, etc.) |
 | `bunx terraform-scaffold tf-output <env>` | Export Terraform outputs to environment files |
 | `bunx terraform-scaffold sync-modules` | Copy Terraform modules into your project |
+
+---
+
+## CLAUDE.md Setup
+
+After scaffolding, create or update the project's `CLAUDE.md` with the standard structure. Adapt the project name, description, and AWS services to match the actual project.
+
+### Skills Table
+
+Inject a `## Skills` section with the "Load when…" format:
+
+```markdown
+## Skills
+
+| Skill                          | Load when…                                                                                                                                          |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`/nuxt-ui`**                 | Using or customising Nuxt UI components (`<UButton>`, `<UCard>`, `<UModal>`, etc.), app config, color theming, dark mode, form validation, icons    |
+| **`/tailwind-ui`**             | Building new UI patterns — search templates before writing Tailwind from scratch (heroes, navbars, footers, grids, cards, responsive layouts)        |
+| **`/visual-development-skill`**| Developing or modifying visual elements (components, pages, layouts, styling) — Playwright screenshots, Compodium preview, responsive/dark-mode verification |
+| **`/git-commit-skill`**        | Committing changes, staging files, or finishing work in a git worktree — smart commit, multi-concern splitting, sensitive-file guarding. Run `bun run lint:fix` and `bun run pretty` before committing |
+```
+
+### Key Conventions
+
+Inject a `## Key Conventions` section:
+
+```markdown
+## Key Conventions
+
+- **Vue SFC block order: `<script>` → `<template>` → `<style>`** — always place `<script setup lang="ts">` first, then `<template lang="pug">`, then `<style>` last.
+- **All `.vue` files MUST use Pug templates** — use `<template lang="pug">` instead of plain `<template>`. This applies to pages, layouts, components, and `app.vue`. Never generate HTML templates in `.vue` files; always write Pug syntax. **Use `class=""` attribute syntax for classes, NOT Pug dot notation** (e.g., `div(class="flex items-center")` not `div.flex.items-center`).
+- Components, composables, utils are **auto-imported** — no import statements
+- Pages: `app/pages/index.vue` → `/`, `app/pages/feed.vue` → `/feed`
+- Nuxt UI components are globally available
+- **Reusable types go in `types/`** — always define shared TypeScript interfaces, types, and enums in the `types/` directory. When creating new types or updating existing ones, write them to `types/`. Import from `types/` across the codebase instead of defining inline or co-located types.
+- Types auto-generated in `.nuxt/` — run `bun run postinstall` if stale
+```
+
+### Full CLAUDE.md Template
+
+The complete `CLAUDE.md` should follow this section order:
+
+1. **Header** — project name and one-line description with tech stack summary
+2. **Commands** — all bun scripts with inline comments
+3. **Tech Stack** — framework, UI, cloud, IaC, content, images, linting, dev tools
+4. **Architecture** — directory table (purpose only, no skill column)
+5. **Skills** — "Load when…" table (see above)
+6. **Key Conventions** — SFC order, pug, auto-imports, types
+7. **AWS Services** — server-side service wrappers (if applicable)
+8. **Composables** — client-side composables (if applicable)
+9. **Terraform / Infrastructure** — IaC details (if applicable)
+10. **Ralph System** — autonomous agent tooling (if applicable)
 
 ---
 
