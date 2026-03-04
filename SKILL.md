@@ -168,6 +168,10 @@ export default withNuxt(
             'vue/multiline-html-element-content-newline': 'off',
             'vue/singleline-html-element-content-newline': 'off',
             'vue/html-self-closing': 'off',
+            'vue/component-tags-order': [
+                'error',
+                { order: ['script', 'template', 'style'] },
+            ],
             'func-style': ['error', 'declaration'],
         },
     },
